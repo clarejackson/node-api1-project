@@ -12,13 +12,11 @@ server.get("/", (req, res) => {
 
 //POST 
 server.post("/api/users", (req, res) => {
-  const newUser = db.insert({
-    id: db.shortid.generate(),
+  db.insert({
     name: req.body.name,
     bio: req.body.bio
   })
-  newUser
-  .then(() => {
+  .then((newUser) => {
     if (!req.body.name || !req.body.bio){
      return res.status(400).json({
       message: "Please provide name and bio for the user",
@@ -38,8 +36,7 @@ server.post("/api/users", (req, res) => {
 
 //GET
 server.get("/api/users", (req, res) => {
-  const users = db.find()
-  users
+  db.find()
   .then((users) => {
     res.json(users)
   })
@@ -53,10 +50,9 @@ server.get("/api/users", (req, res) => {
 
 //GET
 server.get("/api/users/:id", (req, res) => {
-  const users = db.findById(req.params.id)
-  users
+  db.findById(req.params.id)
   .then((users) => {
-    if (req.params.id){
+    if (users){
       res.json(users)
     } else {
       res.status(404).json({
@@ -74,10 +70,9 @@ server.get("/api/users/:id", (req, res) => {
 
 //DELETE
 server.delete("/api/users/:id", (req, res) => {
-  const users = db.findById(req.params.id)
-  users
+  db.remove(req.params.id)
   .then((user) => {
-    if(req.params.id){
+    if(user){
       res.json(user)
     } else {
       res.status(404).json({
@@ -94,26 +89,25 @@ server.delete("/api/users/:id", (req, res) => {
 })
 
 //PUT
-server.put("/api/users/:id", async (req, res) => {
-  const users = await db.find()
-
-  if (!req.params.id) {
-    return res.status(404).json({
-      message: "The user with the specified ID does not exist"
-    })
-  } else if (!req.body.name || !req.body.bio){
+server.put("/api/users/:id", (req, res) => {
+  if (!req.body.name || !req.body.bio){
     return res.status(400).json({
       message: "Please provide name and bio for the user",
     })  
   }
-  // console.log(users)
-  db.update(users[req.params.id-1].id, {
+  db.update(req.params.id, {
     name: req.body.name,
     bio: req.body.bio,
   })
   .then((updatedUser) => {
     console.log(updatedUser)
+    if(updatedUser){
       res.status(200).json(updatedUser)
+    } else {
+      res.status(404).json({
+            message: "The user with the specified ID does not exist"
+          })
+    }    
     })
   .catch((error) => {
     console.log(error)
